@@ -69,7 +69,7 @@ public class StackyContract {
                 COLUMN_OWNER_ID = "owner_id";
     }
 
-    public static final class User implements BaseColumns {
+    public static final class UserEntry implements BaseColumns {
         public static final Uri CONTENT_URI
                 = BASE_CONTENT_URI.buildUpon().appendPath(PATH_USER).build();
 
