@@ -5,6 +5,8 @@ import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import java.util.List;
+
 /**
  * Created by Tejas Sherdiwala on 17/1/17.
  */
@@ -42,7 +44,8 @@ public class StackyContract {
                 COLUMN_LAST_ACTIVITY_DATE = "last_activity_date",
                 COLUMN_START_DATE = "start_date", //to track when the user has added
                 COLUMN_LINK = "link",
-                COLUMN_OWNER_ID = "owner_id";
+                COLUMN_OWNER_ID = "owner_id",
+                COLUMN_ANSWER_COUNT = "answer_count";
 
         public static Uri buildQuestionUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -67,6 +70,22 @@ public class StackyContract {
                 COLUMN_CREATION_DATE = "creation_date",
                 COLUMN_LAST_ACTIVITY_DATE = "last_activity_date",
                 COLUMN_OWNER_ID = "owner_id";
+
+        /**
+         * URI format : question/{id}/answer
+         */
+        public static long getQuestionIdFromUri(Uri uri){
+            List<String> paths = uri.getPathSegments();
+            return Long.parseLong(paths.get(paths.size()-2));
+        }
+
+        public static Uri buildAnswerUri(long questionId, long answerId) {
+            return QuestionEntry.CONTENT_URI.buildUpon()
+                    .appendPath(String.valueOf(questionId))
+                    .appendPath(PATH_ANSWER)
+                    .appendPath(String.valueOf(answerId))
+                    .build();
+        }
     }
 
     public static final class UserEntry implements BaseColumns {
