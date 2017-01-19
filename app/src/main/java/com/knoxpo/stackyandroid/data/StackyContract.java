@@ -50,6 +50,11 @@ public class StackyContract {
         public static Uri buildQuestionUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+        public static long getQuestionIdFromUri(Uri uri){
+            List<String> paths = uri.getPathSegments();
+            return Long.parseLong(paths.get(1));
+        }
     }
 
     public static final class AnswerEntry implements BaseColumns {
@@ -76,7 +81,14 @@ public class StackyContract {
          */
         public static long getQuestionIdFromUri(Uri uri){
             List<String> paths = uri.getPathSegments();
-            return Long.parseLong(paths.get(paths.size()-2));
+            return Long.parseLong(paths.get(1));
+        }
+
+        /**
+         * URI format : question/{question_id}/answer/{answer_id}
+         */
+        public static long getAnswerIdFromUri(Uri uri){
+            return Long.parseLong(uri.getLastPathSegment());
         }
 
         public static Uri buildAnswerUri(long questionId, long answerId) {
@@ -84,6 +96,13 @@ public class StackyContract {
                     .appendPath(String.valueOf(questionId))
                     .appendPath(PATH_ANSWER)
                     .appendPath(String.valueOf(answerId))
+                    .build();
+        }
+
+        public static Uri buildAnswersOfQuestionUri(long questionId){
+            return QuestionEntry.CONTENT_URI.buildUpon()
+                    .appendPath(String.valueOf(questionId))
+                    .appendPath(PATH_ANSWER)
                     .build();
         }
     }
@@ -104,5 +123,12 @@ public class StackyContract {
                 COLUMN_DISPLAY_NAME = "display_name",
                 COLUMN_PROFILE_IMAGE = "profile_image",
                 COLUMN_LINK = "link";
+
+        /**
+         * URI format user/{user_id}
+         */
+        public static long getUserIdFromUri(Uri uri){
+            return Long.parseLong(uri.getLastPathSegment());
+        }
     }
 }
