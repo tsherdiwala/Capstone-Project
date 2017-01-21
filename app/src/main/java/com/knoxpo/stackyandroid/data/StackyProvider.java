@@ -24,7 +24,8 @@ public class StackyProvider extends ContentProvider {
             QUESTION_WITH_ID = 1,
             ANSWER = 2,
             ANSWER_WITH_ID = 3,
-            USER_WITH_ID = 4;
+            USER = 4,
+            USER_WITH_ID = 5;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -36,7 +37,9 @@ public class StackyProvider extends ContentProvider {
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#", QUESTION_WITH_ID);
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#/" + StackyContract.PATH_ANSWER, ANSWER);
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#/" + StackyContract.PATH_ANSWER + "/#", ANSWER_WITH_ID);
+        matcher.addURI(authority,StackyContract.PATH_USER, USER);
         matcher.addURI(authority, StackyContract.PATH_USER + "/#", USER_WITH_ID);
+
 
         return matcher;
     }
@@ -48,7 +51,7 @@ public class StackyProvider extends ContentProvider {
         sQuestionQueryBuilder = new SQLiteQueryBuilder();
         sQuestionQueryBuilder.setTables(
                 StackyContract.QuestionEntry.TABLE_NAME +
-                        " INNER JOIN " +
+                        " LEFT JOIN " +
                         StackyContract.AnswerEntry.TABLE_NAME +
                         " ON " +
                         StackyContract.QuestionEntry.TABLE_NAME + "." + StackyContract.QuestionEntry._ID +
@@ -97,7 +100,7 @@ public class StackyProvider extends ContentProvider {
         );
         sQuestionQueryProjectionMap.put(
                 StackyContract.QuestionEntry.COLUMN_ANSWER_COUNT,
-                "COUNT (" + StackyContract.AnswerEntry._ID + ")"
+                "COUNT (" + StackyContract.AnswerEntry.TABLE_NAME+"."+StackyContract.AnswerEntry._ID + ")"
         );
 
         sQuestionQueryBuilder.setProjectionMap(sQuestionQueryProjectionMap);
@@ -163,7 +166,7 @@ public class StackyProvider extends ContentProvider {
                 projection,
                 null,
                 null,
-                StackyContract.QuestionEntry._ID,
+                StackyContract.QuestionEntry.TABLE_NAME+"."+StackyContract.QuestionEntry._ID,
                 null,
                 sortOrder
         );
@@ -232,6 +235,7 @@ public class StackyProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
+        returnCursor.setNotificationUri(getContext().getContentResolver(),uri);
         return returnCursor;
     }
 
@@ -272,9 +276,24 @@ public class StackyProvider extends ContentProvider {
                     throw new SQLException("Failed to insert row into URI : " + uri);
                 }
                 break;
+            case USER:
+                long userId = mDbHelper.getWritableDatabase().insert(
+                        StackyContract.UserEntry.TABLE_NAME,
+                        null,
+                        values
+                );
+
+                if(userId>0){
+                    returnUri = StackyContract.UserEntry.buildUserUri(userId);
+                }else {
+                    throw new SQLException("Failed to insert row into URI : " + uri);
+                }
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
+
+
         getContext().getContentResolver().notifyChange(uri, null);
         return returnUri;
     }

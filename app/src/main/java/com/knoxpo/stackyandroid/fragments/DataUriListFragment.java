@@ -83,7 +83,7 @@ public abstract class DataUriListFragment<VH extends RecyclerView.ViewHolder>
                 getProjection(),
                 null,
                 null,
-                null
+                getSortOrder()
         );
     }
 
@@ -113,6 +113,10 @@ public abstract class DataUriListFragment<VH extends RecyclerView.ViewHolder>
     }
 
     protected String[] getProjection(){
+        return null;
+    }
+
+    protected String getSortOrder(){
         return null;
     }
 

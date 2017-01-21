@@ -130,5 +130,9 @@ public class StackyContract {
         public static long getUserIdFromUri(Uri uri){
             return Long.parseLong(uri.getLastPathSegment());
         }
+
+        public static Uri buildUserUri(long userId) {
+            return ContentUris.withAppendedId(CONTENT_URI,userId);
+        }
     }
 }

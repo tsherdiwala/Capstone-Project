@@ -1,7 +1,6 @@
 package com.knoxpo.stackyandroid.fragments;
 
 import android.app.Activity;
-import android.content.AsyncQueryHandler;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentValues;
@@ -22,14 +21,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.knoxpo.stackyandroid.R;
 import com.knoxpo.stackyandroid.data.StackyContract;
-import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
 import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
-import com.knoxpo.stackyandroid.data.StackyProvider;
+import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
 import com.knoxpo.stackyandroid.dialogs.InputDialogFragment;
 import com.knoxpo.stackyandroid.utils.Constants;
 import com.knoxpo.stackyandroid.utils.VolleyHelper;
@@ -37,11 +33,14 @@ import com.knoxpo.stackyandroid.utils.http.StackyErrorListener;
 import com.knoxpo.stackyandroid.utils.http.StackyListener;
 import com.knoxpo.stackyandroid.utils.http.StackyRequest;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.R.attr.path;
 
 /**
  * Created by knoxpo on 15/01/17.
@@ -65,7 +64,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
     private static final int
             REQUEST_QUESTION_ID = 0,
             REQUEST_QUESTION_DETAILS = 1,
-            REQUEST_ANSWER_DETAILS = 2;
+            REQUEST_ANSWERS = 2;
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -125,30 +124,24 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
     }
 
     @Override
+    protected String getSortOrder() {
+        return QuestionEntry.COLUMN_START_DATE + " DESC";
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_QUESTION_ID && resultCode == Activity.RESULT_OK) {
             String questionId = data.getStringExtra(InputDialogFragment.EXTRA_INPUT);
             getQuestionDetails(questionId);
-            //fetch details of the question here
+            getAnswerDetails(questionId);
         }
     }
 
     private void getQuestionDetails(String questionId) {
-        String path = Uri.parse(Constants.Api.QUESTIONS)
-                .buildUpon()
-                .appendPath(questionId)
-                .build()
-                .toString();
 
-        /*JsonObjectRequest request = new JsonObjectRequest(
-                path,
-                null,
-                this,
-                this
-        );*/
         StackyRequest request = new StackyRequest(
-                path,
+                Constants.Api.getQuestionUrl(questionId),
                 REQUEST_QUESTION_DETAILS,
                 this,
                 this
@@ -159,7 +152,26 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
         VolleyHelper.getInstance(getActivity()).addToRequestQueue(request);
     }
 
+    private void getAnswerDetails(String questionId) {
+        StackyRequest request = new StackyRequest(
+                Constants.Api.getAnswerUrl(questionId),
+                REQUEST_ANSWERS,
+                this,
+                this
+        );
+
+        VolleyHelper.getInstance(getActivity()).addToRequestQueue(request);
+    }
+
+
+    @Override
+    public void onErrorResponse(VolleyError error, int requestCode) {
+
+    }
+
+
     private static final String
+            JSON_A_ITEMS = "items",
             JSON_N_QUESTION_ID = "question_id",
             JSON_S_TITLE = "title",
             JSON_N_SCORE = "score",
@@ -170,14 +182,9 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             JSON_N_USER_ID = "user_id",
             JSON_S_DISPLAY_NAME = "display_name",
             JSON_S_LINK = "link",
-            JSON_S_PROFILE_IMAGE = "profile_image";
-
-
-    @Override
-    public void onErrorResponse(VolleyError error, int requestCode) {
-
-    }
-
+            JSON_S_PROFILE_IMAGE = "profile_image",
+            JSON_B_IS_ACCEPTED = "is_accepted",
+            JSON_N_ANSWER_ID = "answer_id";
 
     @Override
     public void onResponse(JSONObject response, int request) {
@@ -185,7 +192,11 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
         if (request == REQUEST_QUESTION_DETAILS) {
             try {
 
-                JSONObject userObject = response.getJSONObject(JSON_O_OWNER);
+                JSONArray itemsArray = response.getJSONArray(JSON_A_ITEMS);
+
+                JSONObject itemObject = itemsArray.getJSONObject(0);
+
+                JSONObject userObject = itemObject.getJSONObject(JSON_O_OWNER);
 
                 ContentValues cv = new ContentValues();
                 cv.put(UserEntry._ID, userObject.getLong(JSON_N_USER_ID));
@@ -201,13 +212,13 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                                 .build();
 
                 cv = new ContentValues();
-                cv.put(QuestionEntry._ID, response.getLong(JSON_N_QUESTION_ID));
-                cv.put(QuestionEntry.COLUMN_TITLE, response.getString(JSON_S_TITLE));
-                cv.put(QuestionEntry.COLUMN_CREATION_DATE, response.getLong(JSON_N_CREATION_DATE));
-                cv.put(QuestionEntry.COLUMN_LAST_ACTIVITY_DATE, response.getLong(JSON_N_LAST_ACTIVITY_DATE));
+                cv.put(QuestionEntry._ID, itemObject.getLong(JSON_N_QUESTION_ID));
+                cv.put(QuestionEntry.COLUMN_TITLE, itemObject.getString(JSON_S_TITLE));
+                cv.put(QuestionEntry.COLUMN_CREATION_DATE, itemObject.getLong(JSON_N_CREATION_DATE));
+                cv.put(QuestionEntry.COLUMN_LAST_ACTIVITY_DATE, itemObject.getLong(JSON_N_LAST_ACTIVITY_DATE));
                 cv.put(QuestionEntry.COLUMN_OWNER_ID, userObject.getLong(JSON_N_USER_ID));
-                cv.put(QuestionEntry.COLUMN_LINK, response.getString(JSON_S_LINK));
-                cv.put(QuestionEntry.COLUMN_SCORE, response.getInt(JSON_N_SCORE));
+                cv.put(QuestionEntry.COLUMN_LINK, itemObject.getString(JSON_S_LINK));
+                cv.put(QuestionEntry.COLUMN_SCORE, itemObject.getInt(JSON_N_SCORE));
                 cv.put(QuestionEntry.COLUMN_START_DATE, new Date().getTime());
 
                 ContentProviderOperation insertQuestion =
@@ -233,8 +244,6 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                     Log.d(TAG, "Error in insert question");
                     return;
                 }
-
-
             } catch (JSONException e) {
                 e.printStackTrace();
             } catch (RemoteException e) {
@@ -242,8 +251,6 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             } catch (OperationApplicationException e) {
                 e.printStackTrace();
             }
-        }else if(request == REQUEST_ANSWER_DETAILS){
-
         }
     }
 
