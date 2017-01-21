@@ -32,6 +32,10 @@ import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
 import com.knoxpo.stackyandroid.data.StackyProvider;
 import com.knoxpo.stackyandroid.dialogs.InputDialogFragment;
 import com.knoxpo.stackyandroid.utils.Constants;
+import com.knoxpo.stackyandroid.utils.VolleyHelper;
+import com.knoxpo.stackyandroid.utils.http.StackyErrorListener;
+import com.knoxpo.stackyandroid.utils.http.StackyListener;
+import com.knoxpo.stackyandroid.utils.http.StackyRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,7 +47,8 @@ import java.util.Date;
  * Created by knoxpo on 15/01/17.
  * © KNOXPO
  */
-public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH> implements Response.ErrorListener, Response.Listener<JSONObject> {
+public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
+        implements StackyErrorListener, StackyListener {
 
     private static final String
             TAG = MainFragment.class.getSimpleName(),
@@ -58,7 +63,9 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH> i
             INDEX_START_DATE = 4;
 
     private static final int
-            REQUEST_QUESTION_ID = 0;
+            REQUEST_QUESTION_ID = 0,
+            REQUEST_QUESTION_DETAILS = 1,
+            REQUEST_ANSWER_DETAILS = 2;
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -134,19 +141,22 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH> i
                 .build()
                 .toString();
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        /*JsonObjectRequest request = new JsonObjectRequest(
                 path,
                 null,
+                this,
+                this
+        );*/
+        StackyRequest request = new StackyRequest(
+                path,
+                REQUEST_QUESTION_DETAILS,
                 this,
                 this
         );
 
         Log.d(TAG, "Path: " + path);
-    }
 
-    @Override
-    public void onErrorResponse(VolleyError error) {
-
+        VolleyHelper.getInstance(getActivity()).addToRequestQueue(request);
     }
 
     private static final String
@@ -164,60 +174,76 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH> i
 
 
     @Override
-    public void onResponse(JSONObject response) {
+    public void onErrorResponse(VolleyError error, int requestCode) {
 
-        try {
+    }
 
-            JSONObject userObject = response.getJSONObject(JSON_O_OWNER);
 
-            ContentValues cv = new ContentValues();
-            cv.put(UserEntry._ID, userObject.getLong(JSON_N_USER_ID));
-            cv.put(UserEntry.COLUMN_DISPLAY_NAME, userObject.getString(JSON_S_DISPLAY_NAME));
-            cv.put(UserEntry.COLUMN_LINK, userObject.getString(JSON_S_LINK));
-            cv.put(UserEntry.COLUMN_REPUTATION, userObject.getInt(JSON_N_REPUTATION));
-            cv.put(UserEntry.COLUMN_PROFILE_IMAGE, userObject.getString(JSON_S_PROFILE_IMAGE));
+    @Override
+    public void onResponse(JSONObject response, int request) {
 
-            ContentProviderOperation insertOwner =
-                    ContentProviderOperation
-                            .newInsert(UserEntry.CONTENT_URI)
-                            .withValues(cv)
-                            .build();
+        if (request == REQUEST_QUESTION_DETAILS) {
+            try {
 
-            cv = new ContentValues();
-            cv.put(QuestionEntry._ID, response.getLong(JSON_N_QUESTION_ID));
-            cv.put(QuestionEntry.COLUMN_TITLE, response.getString(JSON_S_TITLE));
-            cv.put(QuestionEntry.COLUMN_CREATION_DATE, response.getLong(JSON_N_CREATION_DATE));
-            cv.put(QuestionEntry.COLUMN_LAST_ACTIVITY_DATE, response.getLong(JSON_N_LAST_ACTIVITY_DATE));
-            cv.put(QuestionEntry.COLUMN_OWNER_ID, userObject.getLong(JSON_N_USER_ID));
-            cv.put(QuestionEntry.COLUMN_LINK, response.getString(JSON_S_LINK));
-            cv.put(QuestionEntry.COLUMN_SCORE, response.getInt(JSON_N_SCORE));
-            cv.put(QuestionEntry.COLUMN_START_DATE, new Date().getTime());
+                JSONObject userObject = response.getJSONObject(JSON_O_OWNER);
 
-            ContentProviderOperation insertQuestion =
-                    ContentProviderOperation
-                            .newInsert(QuestionEntry.CONTENT_URI)
-                            .withValues(cv)
-                            .build();
+                ContentValues cv = new ContentValues();
+                cv.put(UserEntry._ID, userObject.getLong(JSON_N_USER_ID));
+                cv.put(UserEntry.COLUMN_DISPLAY_NAME, userObject.getString(JSON_S_DISPLAY_NAME));
+                cv.put(UserEntry.COLUMN_LINK, userObject.getString(JSON_S_LINK));
+                cv.put(UserEntry.COLUMN_REPUTATION, userObject.getInt(JSON_N_REPUTATION));
+                cv.put(UserEntry.COLUMN_PROFILE_IMAGE, userObject.getString(JSON_S_PROFILE_IMAGE));
 
-            ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-            operations.add(insertOwner);
-            operations.add(insertQuestion);
+                ContentProviderOperation insertOwner =
+                        ContentProviderOperation
+                                .newInsert(UserEntry.CONTENT_URI)
+                                .withValues(cv)
+                                .build();
 
-            ContentProviderResult[] results = getActivity()
-                    .getContentResolver()
-                    .applyBatch(StackyContract.CONTENT_AUTHORITY, operations);
+                cv = new ContentValues();
+                cv.put(QuestionEntry._ID, response.getLong(JSON_N_QUESTION_ID));
+                cv.put(QuestionEntry.COLUMN_TITLE, response.getString(JSON_S_TITLE));
+                cv.put(QuestionEntry.COLUMN_CREATION_DATE, response.getLong(JSON_N_CREATION_DATE));
+                cv.put(QuestionEntry.COLUMN_LAST_ACTIVITY_DATE, response.getLong(JSON_N_LAST_ACTIVITY_DATE));
+                cv.put(QuestionEntry.COLUMN_OWNER_ID, userObject.getLong(JSON_N_USER_ID));
+                cv.put(QuestionEntry.COLUMN_LINK, response.getString(JSON_S_LINK));
+                cv.put(QuestionEntry.COLUMN_SCORE, response.getInt(JSON_N_SCORE));
+                cv.put(QuestionEntry.COLUMN_START_DATE, new Date().getTime());
 
-            if(results[0].uri == null){
-                Log.d(TAG, "Error in inserting user");
+                ContentProviderOperation insertQuestion =
+                        ContentProviderOperation
+                                .newInsert(QuestionEntry.CONTENT_URI)
+                                .withValues(cv)
+                                .build();
+
+                ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+                operations.add(insertOwner);
+                operations.add(insertQuestion);
+
+                ContentProviderResult[] results = getActivity()
+                        .getContentResolver()
+                        .applyBatch(StackyContract.CONTENT_AUTHORITY, operations);
+
+                if (results[0].uri == null) {
+                    Log.d(TAG, "Error in inserting user");
+                    return;
+                }
+
+                if (results[1].uri == null) {
+                    Log.d(TAG, "Error in insert question");
+                    return;
+                }
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } catch (OperationApplicationException e) {
+                e.printStackTrace();
             }
+        }else if(request == REQUEST_ANSWER_DETAILS){
 
-
-        } catch (JSONException e) {
-
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (OperationApplicationException e) {
-            e.printStackTrace();
         }
     }
 
