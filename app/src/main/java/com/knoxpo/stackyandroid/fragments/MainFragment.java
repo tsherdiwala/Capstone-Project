@@ -27,6 +27,7 @@ import com.knoxpo.stackyandroid.data.StackyContract;
 import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
 import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
 import com.knoxpo.stackyandroid.dialogs.InputDialogFragment;
+import com.knoxpo.stackyandroid.models.User;
 import com.knoxpo.stackyandroid.utils.Constants;
 import com.knoxpo.stackyandroid.utils.VolleyHelper;
 import com.knoxpo.stackyandroid.utils.http.StackyErrorListener;
@@ -39,6 +40,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Vector;
 
 import static android.R.attr.path;
 
@@ -198,12 +200,14 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
                 JSONObject userObject = itemObject.getJSONObject(JSON_O_OWNER);
 
+                User user = new User(userObject);
+
                 ContentValues cv = new ContentValues();
-                cv.put(UserEntry._ID, userObject.getLong(JSON_N_USER_ID));
-                cv.put(UserEntry.COLUMN_DISPLAY_NAME, userObject.getString(JSON_S_DISPLAY_NAME));
-                cv.put(UserEntry.COLUMN_LINK, userObject.getString(JSON_S_LINK));
-                cv.put(UserEntry.COLUMN_REPUTATION, userObject.getInt(JSON_N_REPUTATION));
-                cv.put(UserEntry.COLUMN_PROFILE_IMAGE, userObject.getString(JSON_S_PROFILE_IMAGE));
+                cv.put(UserEntry._ID, user.getId());
+                cv.put(UserEntry.COLUMN_DISPLAY_NAME, user.getDisplayName());
+                cv.put(UserEntry.COLUMN_LINK, user.getLink());
+                cv.put(UserEntry.COLUMN_REPUTATION, user.getReputation());
+                cv.put(UserEntry.COLUMN_PROFILE_IMAGE, user.getProfileImage());
 
                 ContentProviderOperation insertOwner =
                         ContentProviderOperation
@@ -216,7 +220,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                 cv.put(QuestionEntry.COLUMN_TITLE, itemObject.getString(JSON_S_TITLE));
                 cv.put(QuestionEntry.COLUMN_CREATION_DATE, itemObject.getLong(JSON_N_CREATION_DATE));
                 cv.put(QuestionEntry.COLUMN_LAST_ACTIVITY_DATE, itemObject.getLong(JSON_N_LAST_ACTIVITY_DATE));
-                cv.put(QuestionEntry.COLUMN_OWNER_ID, userObject.getLong(JSON_N_USER_ID));
+                cv.put(QuestionEntry.COLUMN_OWNER_ID, user.getId());
                 cv.put(QuestionEntry.COLUMN_LINK, itemObject.getString(JSON_S_LINK));
                 cv.put(QuestionEntry.COLUMN_SCORE, itemObject.getInt(JSON_N_SCORE));
                 cv.put(QuestionEntry.COLUMN_START_DATE, new Date().getTime());
@@ -249,6 +253,28 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             } catch (RemoteException e) {
                 e.printStackTrace();
             } catch (OperationApplicationException e) {
+                e.printStackTrace();
+            }
+        }else if (request == REQUEST_ANSWERS){
+            try{
+                JSONArray itemsArray = response.getJSONArray(JSON_A_ITEMS);
+
+                Vector<ContentValues> userVector = new Vector<>();
+                Vector<ContentValues> answerVector = new Vector<>();
+                for(int i=0;i<itemsArray.length();i++){
+                    JSONObject answerObject = itemsArray.getJSONObject(i);
+
+                    JSONObject userObject = answerObject.getJSONObject(JSON_O_OWNER);
+
+                    User user = new User(userObject);
+
+
+
+
+
+                }
+
+            }catch (JSONException e){
                 e.printStackTrace();
             }
         }

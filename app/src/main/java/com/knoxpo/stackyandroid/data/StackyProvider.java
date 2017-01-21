@@ -299,6 +299,56 @@ public class StackyProvider extends ContentProvider {
     }
 
     @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        int match = sUriMatcher.match(uri);
+
+        switch (match){
+            case USER:
+                db.beginTransaction();
+                int returnCount = 0;
+                try{
+                    for(ContentValues value : values){
+                        if(insertValue(db, StackyContract.UserEntry.TABLE_NAME,value)){
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                }finally {
+                    db.endTransaction();
+                }
+                return returnCount;
+            case ANSWER:
+                db.beginTransaction();
+                returnCount = 0;
+                try{
+                    for(ContentValues value : values){
+                        if(insertValue(db, StackyContract.AnswerEntry.TABLE_NAME,value)){
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                }finally {
+                    db.endTransaction();
+                }
+                return returnCount;
+            default:
+                return super.bulkInsert(uri,values);
+        }
+    }
+
+    private boolean insertValue(SQLiteDatabase db,String tableName,ContentValues values){
+        long _id = db.insert(
+                tableName,
+                null,
+                values);
+        if(_id>0){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         int match = sUriMatcher.match(uri);
         switch (match) {
