@@ -18,6 +18,10 @@ import com.knoxpo.stackyandroid.R;
  */
 public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH> {
 
+    private static final int
+            LOADER_QUESTION_ID = 0,
+            LOADER_ANSWERS_ID = 1;
+
     private TextView
             mTitleTV,
             mScoreTV,
@@ -26,16 +30,21 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
             mReputationTV,
             mAnsweredTV;
 
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
+        init(v);
         return v;
     }
 
     private void init(View v) {
-
+        mTitleTV = (TextView)v.findViewById(R.id.tv_title);
+        mScoreTV = (TextView)v.findViewById(R.id.tv_score);
+        mDisplayNameTV = (TextView)v.findViewById(R.id.tv_display_name);
+        mCreationDateTV = (TextView)v.findViewById(R.id.tv_creation_date);
+        mReputationTV = (TextView)v.findViewById(R.id.tv_reputation);
+        mAnsweredTV = (TextView)v.findViewById(R.id.tv_answered);
     }
 
     @Override
