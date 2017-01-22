@@ -17,6 +17,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activities.DetailActivity" />
+
         <provider
             android:name=".data.StackyProvider"
             android:authorities="com.knoxpo.stackyandroid"

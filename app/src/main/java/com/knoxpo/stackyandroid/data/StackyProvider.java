@@ -102,6 +102,25 @@ public class StackyProvider extends ContentProvider {
                 StackyContract.QuestionEntry.COLUMN_ANSWER_COUNT,
                 "COUNT (" + StackyContract.AnswerEntry.TABLE_NAME + "." + StackyContract.AnswerEntry._ID + ")"
         );
+        sQuestionQueryProjectionMap.put(
+                StackyContract.QuestionEntry.COLUMN_IS_QUESTION_ANSWERED,
+                "SUM ("+ StackyContract.AnswerEntry.TABLE_NAME + "."+StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED+")"
+        );
+        sQuestionQueryProjectionMap.put(
+                StackyContract.UserEntry.COLUMN_DISPLAY_NAME,
+                StackyContract.UserEntry.COLUMN_DISPLAY_NAME
+        );
+        sQuestionQueryProjectionMap.put(
+                StackyContract.UserEntry.COLUMN_PROFILE_IMAGE,
+                StackyContract.UserEntry.COLUMN_PROFILE_IMAGE
+        );
+
+        sQuestionQueryProjectionMap.put(
+                StackyContract.UserEntry.COLUMN_REPUTATION,
+                StackyContract.UserEntry.COLUMN_REPUTATION
+        );
+
+
 
         sQuestionQueryBuilder.setProjectionMap(sQuestionQueryProjectionMap);
     }
@@ -153,8 +172,22 @@ public class StackyProvider extends ContentProvider {
                 StackyContract.AnswerEntry.TABLE_NAME + "." + StackyContract.AnswerEntry.COLUMN_OWNER_ID
         );
 
-        sAnswersQueryBuilder.setProjectionMap(sAnswersQueryProjectionMap);
+        sAnswersQueryProjectionMap.put(
+                StackyContract.UserEntry.COLUMN_DISPLAY_NAME,
+                StackyContract.UserEntry.TABLE_NAME + "."+ StackyContract.UserEntry.COLUMN_DISPLAY_NAME
+        );
 
+        sAnswersQueryProjectionMap.put(
+                StackyContract.UserEntry.COLUMN_PROFILE_IMAGE,
+                StackyContract.UserEntry.COLUMN_PROFILE_IMAGE
+        );
+
+        sAnswersQueryProjectionMap.put(
+                StackyContract.UserEntry.COLUMN_REPUTATION,
+                StackyContract.UserEntry.COLUMN_REPUTATION
+        );
+
+        sAnswersQueryBuilder.setProjectionMap(sAnswersQueryProjectionMap);
     }
 
     private Cursor getQuestions(String[] projection, String sortOrder) {

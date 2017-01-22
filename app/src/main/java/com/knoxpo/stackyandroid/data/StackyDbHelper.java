@@ -26,7 +26,7 @@ public class StackyDbHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_USERS_TABLE =
                 "CREATE TABLE " + UserEntry.TABLE_NAME + "("
-                        + UserEntry._ID + " INTEGER PRIMARY KEY,"
+                        + UserEntry._ID + " INTEGER,"
                         + UserEntry.COLUMN_DISPLAY_NAME + " TEXT NOT NULL,"
                         + UserEntry.COLUMN_REPUTATION + " INTEGER NOT NULL DEFAULT 0,"
                         + UserEntry.COLUMN_PROFILE_IMAGE + " TEXT NOT NULL,"

@@ -21,12 +21,12 @@ public class User {
     private String mDisplayName, mLink,mProfileImage;
     private int mReputation;
 
-    public User(JSONObject userObject) throws JSONException{
-        mId = userObject.getLong(JSON_N_USER_ID);
-        mDisplayName = userObject.getString(JSON_S_DISPLAY_NAME);
-        mLink = userObject.getString(JSON_S_LINK);
-        mReputation = userObject.getInt(JSON_N_REPUTATION);
-        mProfileImage = userObject.getString(JSON_S_PROFILE_IMAGE);
+    public User(JSONObject userObject){
+        mId = userObject.optLong(JSON_N_USER_ID);
+        mDisplayName = userObject.optString(JSON_S_DISPLAY_NAME);
+        mLink = userObject.optString(JSON_S_LINK);
+        mReputation = userObject.optInt(JSON_N_REPUTATION);
+        mProfileImage = userObject.optString(JSON_S_PROFILE_IMAGE);
     }
 
     public long getId() {

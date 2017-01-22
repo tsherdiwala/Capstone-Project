@@ -45,7 +45,8 @@ public class StackyContract {
                 COLUMN_START_DATE = "start_date", //to track when the user has added
                 COLUMN_LINK = "link",
                 COLUMN_OWNER_ID = "owner_id",
-                COLUMN_ANSWER_COUNT = "answer_count";
+                COLUMN_ANSWER_COUNT = "answer_count",
+                COLUMN_IS_QUESTION_ANSWERED = "is_question_answered";
 
         public static Uri buildQuestionUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

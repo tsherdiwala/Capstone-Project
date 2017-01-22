@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import com.android.volley.VolleyError;
 import com.knoxpo.stackyandroid.R;
+import com.knoxpo.stackyandroid.activities.DetailActivity;
 import com.knoxpo.stackyandroid.data.StackyContract;
 import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
 import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
@@ -255,7 +256,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             try {
                 JSONArray itemsArray = response.getJSONArray(JSON_A_ITEMS);
 
-                long questionId=-1;
+                long questionId = -1;
 
                 Vector<ContentValues> userVector = new Vector<>();
                 Vector<ContentValues> answerVector = new Vector<>();
@@ -313,28 +314,36 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                 }
 
 
+                ContentValues[] userValues = new ContentValues[userVector.size()];
+                userVector.toArray(userValues);
+
                 getActivity().getContentResolver().bulkInsert(
-                    UserEntry.CONTENT_URI,
-                        (ContentValues[]) userVector.toArray()
+                        UserEntry.CONTENT_URI,
+                        userValues
                 );
 
-                if(questionId == -1){
+                if (questionId == -1) {
                     throw new IllegalArgumentException("Question ID is -1");
                 }
 
+
+                ContentValues[] answerValues = new ContentValues[answerVector.size()];
+                answerVector.toArray(answerValues);
+
                 getActivity().getContentResolver().bulkInsert(
                         StackyContract.AnswerEntry.buildAnswersOfQuestionUri(questionId),
-                        (ContentValues[]) userVector.toArray()
+                        answerValues
                 );
 
 
             } catch (JSONException e) {
+                Log.e(TAG, "Response: " + response);
                 e.printStackTrace();
             }
         }
     }
 
-    public class QuestionVH extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class QuestionVH extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private TextView
                 mTitleTV,
@@ -391,8 +400,8 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent();
-
+            Intent intent = new Intent(getActivity(), DetailActivity.class);
+            startActivity(intent);
         }
     }
 }

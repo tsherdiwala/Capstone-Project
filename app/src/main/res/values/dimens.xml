@@ -2,4 +2,6 @@
 <resources>
     <dimen name="list_horizontal_padding">16dp</dimen>
     <dimen name="list_item_vertical_padding">5dp</dimen>
+    <dimen name="answer_list_padding">10dp</dimen>
+    <dimen name="answer_profile_picture">30dp</dimen>
 </resources>

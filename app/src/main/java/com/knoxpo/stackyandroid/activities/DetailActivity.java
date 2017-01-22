@@ -9,8 +9,18 @@ import com.knoxpo.stackyandroid.fragments.DetailFragment;
  */
 
 public class DetailActivity extends ToolbarActivity {
+
+    private static final String TAG = DetailActivity.class.getSimpleName();
+
+    public static final String
+            EXTRA_QUESTION_ID = TAG + ".EXTRA_QUESTION_ID";
+
     @Override
     protected Fragment getFragment() {
+        long questionId = getIntent().getLongExtra(EXTRA_QUESTION_ID,-1);
+        if(questionId == -1){
+            throw new IllegalArgumentException(TAG + " should have a questionId");
+        }
         return new DetailFragment();
     }
 }

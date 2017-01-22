@@ -63,7 +63,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_columnSpan="3"
-        tools:text="answered"
+        android:text="@string/answered"
         />
 
     <TextView
