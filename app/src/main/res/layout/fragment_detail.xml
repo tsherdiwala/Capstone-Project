@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.GridLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:columnCount="3"
+    app:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_columnSpan="3"
+        tools:text="Hell this is a very long text to check if it expands to meet entire screen"
+        />
+
+    <TextView
+        android:id="@+id/tv_score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/ic_thumb_up_black_24dp"
+        android:drawableStart="@drawable/ic_thumb_up_black_24dp"
+        android:gravity="center|start"
+        app:layout_columnWeight="1"
+        tools:text="113"
+        />
+
+    <ImageView
+        android:id="@+id/iv_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_profile_placeholder"
+        app:layout_rowSpan="2"
+        />
+
+    <TextView
+        android:id="@+id/tv_display_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Person name"
+        />
+
+    <TextView
+        android:id="@+id/tv_creation_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_columnWeight="1"
+        tools:text="asked June 3, 2016"
+        />
+
+    <TextView
+        android:id="@+id/tv_reputation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_gravity="end"
+        tools:text="6631"
+        />
+
+    <TextView
+        android:id="@+id/tv_answered"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_columnSpan="3"
+        tools:text="answered"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_columnSpan="3"
+        tools:text="Answers"
+        />
+
+    <include
+        layout="@layout/fragment_data_uri_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_columnSpan="3"
+        app:layout_rowWeight="1"
+        />
+</android.support.v7.widget.GridLayout>

@@ -334,7 +334,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
         }
     }
 
-    public class QuestionVH extends RecyclerView.ViewHolder {
+    public class QuestionVH extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         private TextView
                 mTitleTV,
@@ -344,6 +344,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
         public QuestionVH(View itemView) {
             super(itemView);
+
             mTitleTV = (TextView) itemView.findViewById(R.id.tv_title);
             mAnswersTV = (TextView) itemView.findViewById(R.id.tv_answers);
             mVotesTV = (TextView) itemView.findViewById(R.id.tv_votes);
@@ -351,6 +352,9 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
         }
 
         public void bindQuestion(Cursor cursor) {
+
+            itemView.setOnClickListener(this);
+            itemView.setTag(cursor.getLong(INDEX_ID));
 
             mTitleTV.setText(
                     cursor.getString(INDEX_TITLE)
@@ -382,6 +386,12 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                             )
                     )
             );
+
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent();
 
         }
     }
