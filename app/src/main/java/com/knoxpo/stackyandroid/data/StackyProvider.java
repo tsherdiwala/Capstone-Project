@@ -37,7 +37,7 @@ public class StackyProvider extends ContentProvider {
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#", QUESTION_WITH_ID);
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#/" + StackyContract.PATH_ANSWER, ANSWER);
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#/" + StackyContract.PATH_ANSWER + "/#", ANSWER_WITH_ID);
-        matcher.addURI(authority,StackyContract.PATH_USER, USER);
+        matcher.addURI(authority, StackyContract.PATH_USER, USER);
         matcher.addURI(authority, StackyContract.PATH_USER + "/#", USER_WITH_ID);
 
 
@@ -100,7 +100,7 @@ public class StackyProvider extends ContentProvider {
         );
         sQuestionQueryProjectionMap.put(
                 StackyContract.QuestionEntry.COLUMN_ANSWER_COUNT,
-                "COUNT (" + StackyContract.AnswerEntry.TABLE_NAME+"."+StackyContract.AnswerEntry._ID + ")"
+                "COUNT (" + StackyContract.AnswerEntry.TABLE_NAME + "." + StackyContract.AnswerEntry._ID + ")"
         );
 
         sQuestionQueryBuilder.setProjectionMap(sQuestionQueryProjectionMap);
@@ -166,7 +166,7 @@ public class StackyProvider extends ContentProvider {
                 projection,
                 null,
                 null,
-                StackyContract.QuestionEntry.TABLE_NAME+"."+StackyContract.QuestionEntry._ID,
+                StackyContract.QuestionEntry.TABLE_NAME + "." + StackyContract.QuestionEntry._ID,
                 null,
                 sortOrder
         );
@@ -235,7 +235,7 @@ public class StackyProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
-        returnCursor.setNotificationUri(getContext().getContentResolver(),uri);
+        returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
         return returnCursor;
     }
 
@@ -283,9 +283,9 @@ public class StackyProvider extends ContentProvider {
                         values
                 );
 
-                if(userId>0){
+                if (userId > 0) {
                     returnUri = StackyContract.UserEntry.buildUserUri(userId);
-                }else {
+                } else {
                     throw new SQLException("Failed to insert row into URI : " + uri);
                 }
                 break;
@@ -303,46 +303,50 @@ public class StackyProvider extends ContentProvider {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
 
-        switch (match){
+        switch (match) {
             case USER:
                 db.beginTransaction();
                 int returnCount = 0;
-                try{
-                    for(ContentValues value : values){
-                        if(insertValue(db, StackyContract.UserEntry.TABLE_NAME,value)){
+                try {
+                    for (ContentValues value : values) {
+                        if (insertValue(db, StackyContract.UserEntry.TABLE_NAME, value)) {
                             returnCount++;
                         }
                     }
                     db.setTransactionSuccessful();
-                }finally {
+                } finally {
                     db.endTransaction();
                 }
                 return returnCount;
             case ANSWER:
                 db.beginTransaction();
                 returnCount = 0;
-                try{
-                    for(ContentValues value : values){
-                        if(insertValue(db, StackyContract.AnswerEntry.TABLE_NAME,value)){
+                try {
+                    for (ContentValues value : values) {
+                        if (insertValue(db, StackyContract.AnswerEntry.TABLE_NAME, value)) {
                             returnCount++;
                         }
                     }
                     db.setTransactionSuccessful();
-                }finally {
+                } finally {
                     db.endTransaction();
                 }
+                getContext().getContentResolver().notifyChange(
+                        uri,
+                        null
+                );
                 return returnCount;
             default:
-                return super.bulkInsert(uri,values);
+                return super.bulkInsert(uri, values);
         }
     }
 
-    private boolean insertValue(SQLiteDatabase db,String tableName,ContentValues values){
+    private boolean insertValue(SQLiteDatabase db, String tableName, ContentValues values) {
         long _id = db.insert(
                 tableName,
                 null,
                 values);
-        if(_id>0){
+        if (_id > 0) {
             return true;
         }
         return false;

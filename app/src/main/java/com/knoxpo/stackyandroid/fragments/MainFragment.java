@@ -180,11 +180,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             JSON_N_CREATION_DATE = "creation_date",
             JSON_N_LAST_ACTIVITY_DATE = "last_activity_date",
             JSON_O_OWNER = "owner",
-            JSON_N_REPUTATION = "reputation",
-            JSON_N_USER_ID = "user_id",
-            JSON_S_DISPLAY_NAME = "display_name",
             JSON_S_LINK = "link",
-            JSON_S_PROFILE_IMAGE = "profile_image",
             JSON_B_IS_ACCEPTED = "is_accepted",
             JSON_N_ANSWER_ID = "answer_id";
 
@@ -255,26 +251,84 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             } catch (OperationApplicationException e) {
                 e.printStackTrace();
             }
-        }else if (request == REQUEST_ANSWERS){
-            try{
+        } else if (request == REQUEST_ANSWERS) {
+            try {
                 JSONArray itemsArray = response.getJSONArray(JSON_A_ITEMS);
+
+                long questionId=-1;
 
                 Vector<ContentValues> userVector = new Vector<>();
                 Vector<ContentValues> answerVector = new Vector<>();
-                for(int i=0;i<itemsArray.length();i++){
+                for (int i = 0; i < itemsArray.length(); i++) {
                     JSONObject answerObject = itemsArray.getJSONObject(i);
 
                     JSONObject userObject = answerObject.getJSONObject(JSON_O_OWNER);
 
                     User user = new User(userObject);
 
+                    ContentValues cv = new ContentValues();
+                    cv.put(UserEntry._ID, user.getId());
+                    cv.put(UserEntry.COLUMN_DISPLAY_NAME, user.getDisplayName());
+                    cv.put(UserEntry.COLUMN_LINK, user.getLink());
+                    cv.put(UserEntry.COLUMN_REPUTATION, user.getReputation());
+                    cv.put(UserEntry.COLUMN_PROFILE_IMAGE, user.getProfileImage());
 
+                    userVector.add(cv);
 
+                    cv = new ContentValues();
+                    cv.put(
+                            StackyContract.AnswerEntry._ID,
+                            answerObject.getLong(JSON_N_ANSWER_ID)
+                    );
 
+                    cv.put(
+                            StackyContract.AnswerEntry.COLUMN_CREATION_DATE,
+                            answerObject.getLong(JSON_N_CREATION_DATE)
+                    );
 
+                    cv.put(
+                            StackyContract.AnswerEntry.COLUMN_SCORE,
+                            answerObject.getInt(JSON_N_SCORE)
+                    );
+                    cv.put(
+                            StackyContract.AnswerEntry.COLUMN_QUESTION_ID,
+                            answerObject.getLong(JSON_N_QUESTION_ID)
+                    );
+                    cv.put(
+                            StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED,
+                            answerObject.getBoolean(JSON_B_IS_ACCEPTED)
+                    );
+                    cv.put(
+                            StackyContract.AnswerEntry.COLUMN_LAST_ACTIVITY_DATE,
+                            answerObject.getLong(JSON_N_LAST_ACTIVITY_DATE)
+                    );
+
+                    cv.put(
+                            StackyContract.AnswerEntry.COLUMN_OWNER_ID,
+                            user.getId()
+                    );
+                    answerVector.add(cv);
+
+                    questionId = answerObject.getInt(JSON_N_QUESTION_ID);
                 }
 
-            }catch (JSONException e){
+
+                getActivity().getContentResolver().bulkInsert(
+                    UserEntry.CONTENT_URI,
+                        (ContentValues[]) userVector.toArray()
+                );
+
+                if(questionId == -1){
+                    throw new IllegalArgumentException("Question ID is -1");
+                }
+
+                getActivity().getContentResolver().bulkInsert(
+                        StackyContract.AnswerEntry.buildAnswersOfQuestionUri(questionId),
+                        (ContentValues[]) userVector.toArray()
+                );
+
+
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
@@ -331,5 +385,4 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
         }
     }
-
 }
