@@ -40,7 +40,6 @@ public class StackyProvider extends ContentProvider {
         matcher.addURI(authority, StackyContract.PATH_USER, USER);
         matcher.addURI(authority, StackyContract.PATH_USER + "/#", USER_WITH_ID);
 
-
         return matcher;
     }
 

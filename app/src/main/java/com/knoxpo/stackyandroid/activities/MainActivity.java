@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentManager;
 import com.knoxpo.stackyandroid.R;
 import com.knoxpo.stackyandroid.fragments.DetailFragment;
 import com.knoxpo.stackyandroid.fragments.MainFragment;
+import com.knoxpo.stackyandroid.sync.StackySyncAdapter;
 
 /**
  * Created by knoxpo on 15/01/17.
@@ -20,6 +21,8 @@ public class MainActivity extends ToolbarActivity implements MainFragment.Callba
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_name);
+
+        StackySyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
