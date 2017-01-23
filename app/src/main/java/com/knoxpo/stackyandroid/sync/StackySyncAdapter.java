@@ -13,11 +13,19 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.knoxpo.stackyandroid.R;
 import com.knoxpo.stackyandroid.data.StackyContract;
 import com.knoxpo.stackyandroid.utils.Constants;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +35,11 @@ import java.util.HashMap;
  */
 
 public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
+
+    private static final String TAG = StackySyncAdapter.class.getSimpleName();
+
+    private static final int NET_CONNECT_TIMEOUT_MILLIS = 15000;  // 15 seconds
+    private static final int NET_READ_TIMEOUT_MILLIS = 10000;  // 10 seconds
 
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
@@ -58,30 +71,77 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
                         null
                 );
 
-        HashMap<Integer,ArrayList<Long>> requestMap = new HashMap<>();
+        HashMap<Integer, ArrayList<Long>> requestMap = new HashMap<>();
 
-        if(cursor!=null && cursor.moveToFirst()){
-            int i=0;
-            do{
+        if (cursor != null && cursor.moveToFirst()) {
+            int i = 0;
+            do {
                 long questionId = cursor.getLong(0);
-                ArrayList<Long> existingList = requestMap.get(i%100);
-                if(existingList==null){
+                ArrayList<Long> existingList = requestMap.get(i % 100);
+                if (existingList == null) {
                     existingList = new ArrayList<Long>();
+                }
+                existingList.add(questionId);
+                i++;
+            } while (cursor.moveToNext());
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        for (ArrayList<Long> questionIds : requestMap.values()) {
+            BufferedReader reader = null;
+            try {
+                URL url = new URL(Constants.Api.getAnswerUrl(questionIds, lastSyncMillis));
+                InputStream stream = downloadUrl(url);
+                StringBuffer buffer = new StringBuffer();
+
+                if (stream == null) {
+                    return;
+                }
+
+                reader = new BufferedReader(new InputStreamReader(stream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line + "\n");
+                }
+
+                if (buffer.length() == 0) {
+                    return;
                 }
 
 
 
-                i++;
-            }while(cursor.moveToNext());
 
-
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "Error closing stream", e);
+                    }
+                }
+            }
         }
 
-        if(cursor!=null){
-            cursor.close();
-        }
 
+    }
 
+    private InputStream downloadUrl(final URL url) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setReadTimeout(NET_READ_TIMEOUT_MILLIS /* milliseconds */);
+        conn.setConnectTimeout(NET_CONNECT_TIMEOUT_MILLIS /* milliseconds */);
+        conn.setRequestMethod("GET");
+        conn.setDoInput(true);
+        // Starts the query
+        conn.connect();
+        return conn.getInputStream();
     }
 
     /**
