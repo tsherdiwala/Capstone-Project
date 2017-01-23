@@ -20,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.knoxpo.stackyandroid.R;
@@ -79,9 +80,14 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
         int itemId = item.getItemId();
         if (itemId == R.id.action_add) {
 
-            InputDialogFragment fragment = InputDialogFragment.newInstance(R.string.hint_question_id, InputType.TYPE_CLASS_NUMBER);
-            fragment.setTargetFragment(this, REQUEST_QUESTION_ID);
-            fragment.show(getFragmentManager(), TAG_INPUT_DIALOG);
+            if (Constants.isConnectedToInternet(getActivity())) {
+
+                InputDialogFragment fragment = InputDialogFragment.newInstance(R.string.hint_question_id, InputType.TYPE_CLASS_NUMBER);
+                fragment.setTargetFragment(this, REQUEST_QUESTION_ID);
+                fragment.show(getFragmentManager(), TAG_INPUT_DIALOG);
+            } else {
+                Toast.makeText(getActivity(),R.string.error_no_internet,Toast.LENGTH_LONG).show();
+            }
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -169,7 +175,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
     @Override
     public void onErrorResponse(VolleyError error, int requestCode) {
-
+        Toast.makeText(getActivity(), R.string.error_adding, Toast.LENGTH_LONG).show();
     }
 
 
@@ -401,6 +407,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(getActivity(), DetailActivity.class);
+            intent.putExtra(DetailActivity.EXTRA_QUESTION_ID, (long) v.getTag());
             startActivity(intent);
         }
     }

@@ -104,7 +104,7 @@ public class StackyProvider extends ContentProvider {
         );
         sQuestionQueryProjectionMap.put(
                 StackyContract.QuestionEntry.COLUMN_IS_QUESTION_ANSWERED,
-                "SUM ("+ StackyContract.AnswerEntry.TABLE_NAME + "."+StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED+")"
+                "SUM (" + StackyContract.AnswerEntry.TABLE_NAME + "." + StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED + ")"
         );
         sQuestionQueryProjectionMap.put(
                 StackyContract.UserEntry.COLUMN_DISPLAY_NAME,
@@ -119,7 +119,6 @@ public class StackyProvider extends ContentProvider {
                 StackyContract.UserEntry.COLUMN_REPUTATION,
                 StackyContract.UserEntry.COLUMN_REPUTATION
         );
-
 
 
         sQuestionQueryBuilder.setProjectionMap(sQuestionQueryProjectionMap);
@@ -174,7 +173,7 @@ public class StackyProvider extends ContentProvider {
 
         sAnswersQueryProjectionMap.put(
                 StackyContract.UserEntry.COLUMN_DISPLAY_NAME,
-                StackyContract.UserEntry.TABLE_NAME + "."+ StackyContract.UserEntry.COLUMN_DISPLAY_NAME
+                StackyContract.UserEntry.TABLE_NAME + "." + StackyContract.UserEntry.COLUMN_DISPLAY_NAME
         );
 
         sAnswersQueryProjectionMap.put(
@@ -190,15 +189,15 @@ public class StackyProvider extends ContentProvider {
         sAnswersQueryBuilder.setProjectionMap(sAnswersQueryProjectionMap);
     }
 
-    private Cursor getQuestions(String[] projection, String sortOrder) {
+    private Cursor getQuestions(String[] projection, String sortOrder, String selection, String[] selectionArgs) {
         if (projection == null || projection.length == 0) {
             projection = (String[]) sQuestionQueryProjectionMap.keySet().toArray();
         }
         Cursor cursor = sQuestionQueryBuilder.query(
                 mDbHelper.getReadableDatabase(),
                 projection,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 StackyContract.QuestionEntry.TABLE_NAME + "." + StackyContract.QuestionEntry._ID,
                 null,
                 sortOrder
@@ -260,7 +259,17 @@ public class StackyProvider extends ContentProvider {
 
         switch (match) {
             case QUESTION:
-                returnCursor = getQuestions(projection, sortOrder);
+                returnCursor = getQuestions(projection, sortOrder, null, null);
+                break;
+            case QUESTION_WITH_ID:
+                returnCursor = getQuestions(
+                        projection,
+                        sortOrder,
+                        StackyContract.QuestionEntry.TABLE_NAME+"."+StackyContract.QuestionEntry._ID + "= ?",
+                        new String[]{
+                                String.valueOf(StackyContract.QuestionEntry.getQuestionIdFromUri(uri))
+                        }
+                );
                 break;
             case ANSWER:
                 returnCursor = getAnswersForQuestion(uri, projection, sortOrder);

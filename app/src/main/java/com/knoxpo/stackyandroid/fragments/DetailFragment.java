@@ -1,5 +1,6 @@
 package com.knoxpo.stackyandroid.fragments;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,15 +8,18 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.android.volley.toolbox.NetworkImageView;
 import com.knoxpo.stackyandroid.R;
+import com.knoxpo.stackyandroid.custom.CircleNetworkImageView;
 import com.knoxpo.stackyandroid.data.StackyContract;
+import com.knoxpo.stackyandroid.utils.Constants;
 import com.knoxpo.stackyandroid.utils.VolleyHelper;
 
 /**
@@ -31,15 +35,16 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
             LOADER_QUESTION_ID = 0,
             LOADER_ANSWERS_ID = 1;
 
+
     private static final int
             INDEX_ANSWER_ID = 0,
             INDEX_ANSWER_SCORE = 1,
-            INDEX_QUESTION_ID = 3,
-            INDEX_IS_ACCEPTED = 4,
-            INDEX_ANSWER_CREATION_DATE = 5,
-            INDEX_USER_DISPLAY_NAME = 6,
-            INDEX_USER_PROFILE_IMAGE = 7,
-            INDEX_USER_REPUTATION = 8;
+            INDEX_QUESTION_ID = 2,
+            INDEX_IS_ACCEPTED = 3,
+            INDEX_ANSWER_CREATION_DATE = 4,
+            INDEX_USER_DISPLAY_NAME = 5,
+            INDEX_USER_PROFILE_IMAGE = 6,
+            INDEX_USER_REPUTATION = 7;
 
     private static final int
             INDEX_QUESTION_TITLE = 0,
@@ -69,6 +74,8 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
             mReputationTV,
             mAnsweredTV;
 
+    private CircleNetworkImageView mProfileIV;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +89,7 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
         View v = super.onCreateView(inflater, container, savedInstanceState);
         init(v);
 
-
+        getLoaderManager().initLoader(LOADER_QUESTION_ID, null, this);
         return v;
     }
 
@@ -93,6 +100,7 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
         mCreationDateTV = (TextView) v.findViewById(R.id.tv_creation_date);
         mReputationTV = (TextView) v.findViewById(R.id.tv_reputation);
         mAnsweredTV = (TextView) v.findViewById(R.id.tv_answered);
+        mProfileIV = (CircleNetworkImageView)v.findViewById(R.id.iv_profile);
     }
 
     @Override
@@ -107,7 +115,7 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
 
     @Override
     public void onBindView(AnswerVH holder, Cursor cursor) {
-
+        holder.bind(cursor);
     }
 
     @Override
@@ -117,7 +125,7 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
 
     @Override
     public AnswerVH onCreateViewHolder(View v) {
-        return null;
+        return new AnswerVH(v);
     }
 
     @Override
@@ -189,8 +197,19 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
         mTitleTV.setText(data.getString(INDEX_QUESTION_TITLE));
         mScoreTV.setText(String.valueOf(data.getInt(INDEX_QUESTION_SCORE)));
 
-        mDisplayNameTV.setText(String.valueOf(data.getInt(INDEX_QUESTION_USER_DISPLAY_NAME)));
-        mCreationDateTV.setText(String.valueOf(data.getLong(INDEX_QUESTION_CREATION_DATE)));
+        mDisplayNameTV.setText(data.getString(INDEX_QUESTION_USER_DISPLAY_NAME));
+
+
+        mCreationDateTV.setText(
+                getString(R.string.asked_on,
+                        DateUtils.formatDateTime(
+                                getActivity(),
+                                data.getLong(INDEX_QUESTION_CREATION_DATE) * 1000,
+                                DateUtils.FORMAT_ABBREV_ALL
+                        )
+                )
+        );
+
         mReputationTV.setText(String.valueOf(data.getInt(INDEX_QUESTION_USER_REPUTATION)));
 
         mAnsweredTV.setVisibility(
@@ -198,33 +217,47 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
                         ? View.VISIBLE
                         : View.INVISIBLE
         );
+
+        mProfileIV.setErrorImageResId(R.drawable.ic_profile_placeholder);
+        mProfileIV.setDefaultImageResId(R.drawable.ic_profile_placeholder);
+        mProfileIV.setImageUrl(
+                data.getString(INDEX_QUESTION_USER_PROFILE_IMAGE),
+                VolleyHelper.getInstance(getActivity()).getImageLoader()
+        );
     }
 
-    public class AnswerVH extends RecyclerView.ViewHolder {
+    public class AnswerVH extends RecyclerView.ViewHolder implements View.OnClickListener {
 
 
-        private NetworkImageView mProfileIV;
+        private CircleNetworkImageView mProfileIV;
 
         private TextView
                 mReputationTV,
                 mDisplayNameTV,
                 mCreationDateTV,
-                mScoreIV;
+                mScoreTV;
 
-        private ImageView mIsAnsweredIV;
+        private ImageView mIsAcceptedIV;
 
 
         public AnswerVH(View itemView) {
             super(itemView);
-            mProfileIV = (NetworkImageView)itemView.findViewById(R.id.iv_profile);
-            mReputationTV = (TextView)itemView.findViewById(R.id.tv_reputation);
-            mDisplayNameTV = (TextView)itemView.findViewById(R.id.tv_display_name);
-            mCreationDateTV = (TextView)itemView.findViewById(R.id.tv_creation_date);
-            mScoreIV = (TextView)itemView.findViewById(R.id.tv_score);
-            //mIsAnsweredIV = (ImageView)itemView.findViewById(R.id.tv_answered);
+            mProfileIV = (CircleNetworkImageView) itemView.findViewById(R.id.iv_profile);
+            mReputationTV = (TextView) itemView.findViewById(R.id.tv_reputation);
+            mDisplayNameTV = (TextView) itemView.findViewById(R.id.tv_display_name);
+            mCreationDateTV = (TextView) itemView.findViewById(R.id.tv_creation_date);
+            mScoreTV = (TextView) itemView.findViewById(R.id.tv_score);
+            mIsAcceptedIV = (ImageView) itemView.findViewById(R.id.iv_is_accepted);
         }
 
         public void bind(Cursor cursor) {
+
+            itemView.setTag(
+                    cursor.getLong(INDEX_ANSWER_ID)
+            );
+
+            itemView.setOnClickListener(this);
+
             mProfileIV.setDefaultImageResId(R.drawable.ic_profile_placeholder);
             mProfileIV.setErrorImageResId(R.drawable.ic_profile_placeholder);
             mProfileIV.setImageUrl(
@@ -241,10 +274,42 @@ public class DetailFragment extends DataUriListFragment<DetailFragment.AnswerVH>
             );
 
 
-            /*mScoreTV.setText(
-                    String.valueOf()
-            );*/
+            mCreationDateTV.setText(
+                    getString(
+                            R.string.answered_on,
+                            DateUtils.formatDateTime(
+                                    getActivity(),
+                                    cursor.getLong(INDEX_ANSWER_CREATION_DATE) * 1000,
+                                    DateUtils.FORMAT_ABBREV_ALL
+                            )
+                    )
+            );
+
+            mScoreTV.setText(
+                    String.valueOf(cursor.getInt(INDEX_ANSWER_SCORE))
+            );
+
+            mIsAcceptedIV.setVisibility(
+                    cursor.getInt(INDEX_IS_ACCEPTED) == 1
+                            ? View.VISIBLE
+                            : View.INVISIBLE
+            );
+
+        }
+
+        @Override
+        public void onClick(View v) {
+            long answerId = (long) v.getTag();
+            Intent intent = new Intent(Intent.ACTION_VIEW, Constants.getAnswerUri(answerId));
+            try{
+                startActivity(intent);
+            }catch (Exception e){
+                Toast.makeText(
+                        getActivity(),
+                        R.string.error_no_browser,
+                        Toast.LENGTH_LONG
+                ).show();
+            }
         }
     }
-
 }

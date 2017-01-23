@@ -1,83 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.GridLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:columnCount="3"
-    app:orientation="horizontal">
+    android:orientation="vertical"
+    >
 
-    <TextView
-        android:id="@+id/tv_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_columnSpan="3"
-        tools:text="Hell this is a very long text to check if it expands to meet entire screen"
-        />
-
-    <TextView
-        android:id="@+id/tv_score"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:drawableLeft="@drawable/ic_thumb_up_black_24dp"
-        android:drawableStart="@drawable/ic_thumb_up_black_24dp"
-        android:gravity="center|start"
-        app:layout_columnWeight="1"
-        tools:text="113"
-        />
-
-    <ImageView
-        android:id="@+id/iv_profile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_profile_placeholder"
-        app:layout_rowSpan="2"
-        />
-
-    <TextView
-        android:id="@+id/tv_display_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="Person name"
-        />
-
-    <TextView
-        android:id="@+id/tv_creation_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_columnWeight="1"
-        tools:text="asked June 3, 2016"
-        />
-
-    <TextView
-        android:id="@+id/tv_reputation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_gravity="end"
-        tools:text="6631"
-        />
-
-    <TextView
-        android:id="@+id/tv_answered"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_columnSpan="3"
-        android:text="@string/answered"
-        />
-
-    <TextView
+    <android.support.v7.widget.GridLayout
+        android:padding="@dimen/answer_list_padding"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_columnSpan="3"
-        tools:text="Answers"
+        app:columnCount="3"
+        app:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_columnSpan="3"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            tools:text="Hell this is a very long text to check if it expands to meet entire screen"
+            android:maxLines="3"
+            android:ellipsize="end"
+            />
+
+        <TextView
+            android:id="@+id/tv_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_thumb_up_black_24dp"
+            android:drawableStart="@drawable/ic_thumb_up_black_24dp"
+            android:gravity="center|start"
+            app:layout_columnWeight="1"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            tools:text="113"
+            />
+
+        <com.knoxpo.stackyandroid.custom.CircleNetworkImageView
+            android:id="@+id/iv_profile"
+            android:layout_width="@dimen/question_profile_pic_size"
+            android:layout_height="@dimen/question_profile_pic_size"
+            android:src="@drawable/ic_profile_placeholder"
+            app:layout_rowSpan="2"
+            />
+
+        <TextView
+            android:id="@+id/tv_display_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Person name"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            />
+
+        <TextView
+            android:id="@+id/tv_creation_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            tools:text="asked June 3, 2016"
+            />
+
+        <TextView
+            android:id="@+id/tv_reputation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_gravity="end"
+            tools:text="6631"
+            />
+
+        <TextView
+            android:id="@+id/tv_answered"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/answered"
+            app:layout_columnSpan="3"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            />
+
+    </android.support.v7.widget.GridLayout>
+
+    <TextView
+        android:padding="@dimen/answer_list_padding"
+        android:textStyle="bold"
+        android:background="@android:color/darker_gray"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/title_answers"
         />
+
 
     <include
         layout="@layout/fragment_data_uri_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_columnSpan="3"
-        app:layout_rowWeight="1"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         />
-</android.support.v7.widget.GridLayout>
+
+
+</LinearLayout>
