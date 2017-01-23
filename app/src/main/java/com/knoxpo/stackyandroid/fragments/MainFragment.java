@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
@@ -24,7 +25,6 @@ import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.knoxpo.stackyandroid.R;
-import com.knoxpo.stackyandroid.activities.DetailActivity;
 import com.knoxpo.stackyandroid.data.StackyContract;
 import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
 import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
@@ -69,6 +69,24 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             REQUEST_QUESTION_ID = 0,
             REQUEST_QUESTION_DETAILS = 1,
             REQUEST_ANSWERS = 2;
+
+    public interface Callback{
+        void onQuestionClicked(long questionId);
+    }
+
+    private Callback mCallback;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallback = (Callback) getActivity();
+    }
+
+    @Override
+    public void onDetach() {
+        mCallback = null;
+        super.onDetach();
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -406,9 +424,8 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(getActivity(), DetailActivity.class);
-            intent.putExtra(DetailActivity.EXTRA_QUESTION_ID, (long) v.getTag());
-            startActivity(intent);
+            long questionId = (long) v.getTag();
+            mCallback.onQuestionClicked(questionId);
         }
     }
 }
