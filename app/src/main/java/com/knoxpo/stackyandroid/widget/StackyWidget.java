@@ -22,7 +22,7 @@ public class StackyWidget extends AppWidgetProvider {
 
     private static final String TAG = StackyWidget.class.getSimpleName();
 
-    private static final String REFRESH_ACTION = "com.mypackage.appwidget.action.REFRESH";
+    private static final String REFRESH_ACTION = TAG+"REFRESH_ACTION";
 
     public static void sendRefreshBroadcast(Context context) {
         Intent intent = new Intent(REFRESH_ACTION);
@@ -51,10 +51,10 @@ public class StackyWidget extends AppWidgetProvider {
         }
     }
 
-    private void updateWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId){
+    private void updateWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
 
-        remoteViews.setTextViewText(android.R.id.title,context.getString(R.string.app_name));
+        remoteViews.setTextViewText(android.R.id.title, context.getString(R.string.app_name));
         remoteViews.setRemoteAdapter(
                 R.id.list_view,
                 new Intent(context, WidgetService.class)
@@ -66,9 +66,9 @@ public class StackyWidget extends AppWidgetProvider {
         remoteViews.setOnClickPendingIntent(android.R.id.title, pendingIntent);
 
         Intent detailIntent = new Intent(context, DetailActivity.class);
-        detailIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,appWidgetId);
-        PendingIntent detailPI = PendingIntent.getActivity(context,0,detailIntent,PendingIntent.FLAG_UPDATE_CURRENT);
-        remoteViews.setPendingIntentTemplate(R.id.list_view,detailPI);
+        detailIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        PendingIntent detailPI = PendingIntent.getActivity(context, 0, detailIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        remoteViews.setPendingIntentTemplate(R.id.list_view, detailPI);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
