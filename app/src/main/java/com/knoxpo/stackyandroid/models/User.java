@@ -1,6 +1,9 @@
 package com.knoxpo.stackyandroid.models;
 
-import org.json.JSONException;
+import android.content.ContentValues;
+
+import com.knoxpo.stackyandroid.data.StackyContract;
+
 import org.json.JSONObject;
 
 /**
@@ -47,5 +50,15 @@ public class User {
 
     public int getReputation() {
         return mReputation;
+    }
+
+    public ContentValues toContentValues(){
+        ContentValues cv = new ContentValues();
+        cv.put(StackyContract.UserEntry._ID, getId());
+        cv.put(StackyContract.UserEntry.COLUMN_DISPLAY_NAME, getDisplayName());
+        cv.put(StackyContract.UserEntry.COLUMN_LINK, getLink());
+        cv.put(StackyContract.UserEntry.COLUMN_REPUTATION, getReputation());
+        cv.put(StackyContract.UserEntry.COLUMN_PROFILE_IMAGE, getProfileImage());
+        return cv;
     }
 }

@@ -1,5 +1,9 @@
 package com.knoxpo.stackyandroid.models;
 
+import android.content.ContentValues;
+
+import com.knoxpo.stackyandroid.data.StackyContract;
+
 import org.json.JSONObject;
 
 /**
@@ -58,5 +62,51 @@ public class Answer {
 
     public boolean isAccepted() {
         return mIsAccepted;
+    }
+
+    public ContentValues toContentValues(long userId){
+        ContentValues cv = toContentValues();
+
+        cv.put(
+                StackyContract.AnswerEntry.COLUMN_OWNER_ID,
+                userId
+        );
+
+        return cv;
+    }
+
+    public ContentValues toContentValues(){
+        ContentValues cv = new ContentValues();
+
+        cv.put(
+                StackyContract.AnswerEntry._ID,
+                getId()
+        );
+
+        cv.put(
+                StackyContract.AnswerEntry.COLUMN_CREATION_DATE,
+                getCreationDate()
+        );
+
+        cv.put(
+                StackyContract.AnswerEntry.COLUMN_SCORE,
+                getScore()
+        );
+        cv.put(
+                StackyContract.AnswerEntry.COLUMN_QUESTION_ID,
+                getQuestionId()
+        );
+        cv.put(
+                StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED,
+                isAccepted()
+        );
+        cv.put(
+                StackyContract.AnswerEntry.COLUMN_LAST_ACTIVITY_DATE,
+                getLastActivityDate()
+        );
+
+
+
+        return cv;
     }
 }

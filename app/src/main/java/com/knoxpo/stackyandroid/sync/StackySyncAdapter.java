@@ -2,10 +2,15 @@ package com.knoxpo.stackyandroid.sync;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
@@ -13,11 +18,20 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.knoxpo.stackyandroid.R;
+import com.knoxpo.stackyandroid.activities.DetailActivity;
+import com.knoxpo.stackyandroid.activities.MainActivity;
 import com.knoxpo.stackyandroid.data.StackyContract;
+import com.knoxpo.stackyandroid.models.Answer;
+import com.knoxpo.stackyandroid.models.User;
 import com.knoxpo.stackyandroid.utils.Constants;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +43,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Created by khushboo on 23/1/17.
@@ -41,8 +56,12 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int NET_CONNECT_TIMEOUT_MILLIS = 15000;  // 15 seconds
     private static final int NET_READ_TIMEOUT_MILLIS = 10000;  // 10 seconds
 
-    public static final int SYNC_INTERVAL = 60 * 180;
+    public static final int SYNC_INTERVAL = 60 *15;  //seconds
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+
+    private static final String
+            JSON_A_ITEMS = "items",
+            JSON_O_OWNER = "owner";
 
     public StackySyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -50,16 +69,15 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+        Log.d(TAG, "Syncing application");
+        if(!Constants.isConnectedToInternet(getContext())){
+            Log.d(TAG, "Not connected to internet");
+            return;
+        }
+
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         long lastSyncMillis = preferences.getLong(Constants.SP.LAST_SYNC_TIME, 0);
-
-        preferences
-                .edit()
-                .putLong(
-                        Constants.SP.LAST_SYNC_TIME,
-                        new Date().getTime()
-                )
-                .apply();
 
         Cursor cursor = getContext()
                 .getContentResolver()
@@ -99,18 +117,42 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
         );
 
         ArrayList<Long> existingAnswerIds = new ArrayList<>();
-        if(cursor!=null && cursor.moveToFirst()){
-            do{
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
                 existingAnswerIds.add(cursor.getLong(0));
-            }while (cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
 
-        if(cursor!=null){
+        if (cursor != null) {
             cursor.close();
         }
 
+        cursor = getContext().getContentResolver().query(
+                StackyContract.UserEntry.CONTENT_URI,
+                new String[]{StackyContract.UserEntry._ID},
+                null,
+                null,
+                null
+        );
+
+        ArrayList<Long> existingUserIds = new ArrayList<>();
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                existingUserIds.add(cursor.getLong(0));
+            } while (cursor.moveToNext());
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
 
         StringBuffer buffer = null;
+
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+
+        HashMap<Long, Answer> parsedAnswers = new HashMap<Long, Answer>();
+        HashMap<Long, User> parsedUsers = new HashMap<Long, User>();
+
         for (ArrayList<Long> questionIds : requestMap.values()) {
             BufferedReader reader = null;
             try {
@@ -133,11 +175,26 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
                     return;
                 }
 
+                JSONObject response = new JSONObject(buffer.toString());
 
+                JSONArray itemsArray = response.getJSONArray(JSON_A_ITEMS);
+
+                for (int i = 0; i < itemsArray.length(); i++) {
+                    JSONObject answersObject = itemsArray.getJSONObject(i);
+                    JSONObject userObject = answersObject.getJSONObject(JSON_O_OWNER);
+
+                    User user = new User(userObject);
+                    Answer answer = new Answer(answersObject);
+
+                    parsedUsers.put(user.getId(), user);
+                    parsedAnswers.put(answer.getId(), answer);
+                }
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             } finally {
                 if (reader != null) {
@@ -148,12 +205,108 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 }
             }
+
+            for (int i = 0; i < existingUserIds.size(); i++) {
+                User user = parsedUsers.get(existingAnswerIds.get(i));
+                if (user != null) {
+                    ContentValues cv = user.toContentValues();
+
+                    cv.remove(StackyContract.UserEntry._ID);
+
+                    batch.add(ContentProviderOperation
+                            .newUpdate(StackyContract.UserEntry.buildUserUri(user.getId()))
+                            .withValues(cv)
+                            .build()
+                    );
+                    parsedUsers.remove(user.getId());
+                }
+            }
+
+            for (User user : parsedUsers.values()) {
+                batch.add(
+                        ContentProviderOperation
+                                .newInsert(StackyContract.UserEntry.CONTENT_URI)
+                                .withValues(user.toContentValues())
+                                .build()
+                );
+            }
+
+            int updatedAnswers = 0;
+            for (int i = 0; i < existingAnswerIds.size(); i++) {
+                Answer answer = parsedAnswers.get(existingAnswerIds.get(i));
+                if (answer != null) {
+                    ContentValues cv = answer.toContentValues();
+                    cv.remove(StackyContract.AnswerEntry._ID);
+
+                    batch.add(
+                            ContentProviderOperation
+                                    .newUpdate(StackyContract.AnswerEntry.buildAnswerUri(answer.getQuestionId(), answer.getId()))
+                                    .withValues(cv)
+                                    .build()
+                    );
+                    updatedAnswers++;
+                    parsedAnswers.remove(answer.getId());
+                }
+            }
+
+            int addedAnswers = 0;
+            HashSet<Long> addedQuestionIds = new HashSet<>();
+            for (Answer answer : parsedAnswers.values()) {
+                batch.add(
+                        ContentProviderOperation.newInsert(
+                                StackyContract.AnswerEntry.buildAnswersOfQuestionUri(answer.getQuestionId())
+                        )
+                                .withValues(answer.toContentValues())
+                                .build()
+                );
+                addedAnswers++;
+                addedQuestionIds.add(answer.getQuestionId());
+            }
+
+            if (addedAnswers > 0 || updatedAnswers > 0) {
+                preferences
+                        .edit()
+                        .putLong(
+                                Constants.SP.LAST_SYNC_TIME,
+                                new Date().getTime()
+                        )
+                        .apply();
+            }
+
+            Log.d(TAG, "New answers: " + addedAnswers + " | Updated Answers: " + updatedAnswers);
+
+
+            NotificationManagerCompat manager = NotificationManagerCompat.from(getContext());
+
+            if (addedQuestionIds.size() == 1) {
+
+                long questionId = addedQuestionIds.iterator().next();
+
+                Intent intent = new Intent(getContext(), DetailActivity.class);
+                intent.putExtra(DetailActivity.EXTRA_QUESTION_ID, questionId);
+
+                PendingIntent pi = PendingIntent.getActivity(getContext(), 0, intent, 0);
+
+                Notification notification = new Notification.Builder(getContext())
+                        .setContentTitle("New answers for " + questionIds)
+                        .setContentIntent(pi)
+                        .build();
+                manager.notify(0, notification);
+            } else if (addedQuestionIds.size() > 1) {
+
+                Intent intent = new Intent(getContext(), MainActivity.class);
+
+                PendingIntent pi = PendingIntent.getActivity(getContext(), 0, intent, 0);
+
+                Notification notification = new Notification.Builder(getContext())
+                        .setContentTitle("New answers")
+                        .setContentText(questionIds.size() + " questions have new answers.")
+                        .setContentIntent(pi)
+                        .build();
+
+                manager.notify(0, notification);
+            }
         }
-
-
-
-
-
     }
 
     private InputStream downloadUrl(final URL url) throws IOException {

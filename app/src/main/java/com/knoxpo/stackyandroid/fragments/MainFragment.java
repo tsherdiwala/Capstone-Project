@@ -224,12 +224,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
                 User user = new User(userObject);
 
-                ContentValues cv = new ContentValues();
-                cv.put(UserEntry._ID, user.getId());
-                cv.put(UserEntry.COLUMN_DISPLAY_NAME, user.getDisplayName());
-                cv.put(UserEntry.COLUMN_LINK, user.getLink());
-                cv.put(UserEntry.COLUMN_REPUTATION, user.getReputation());
-                cv.put(UserEntry.COLUMN_PROFILE_IMAGE, user.getProfileImage());
+                ContentValues cv = user.toContentValues();
 
                 ContentProviderOperation insertOwner =
                         ContentProviderOperation
@@ -292,49 +287,14 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
                     User user = new User(userObject);
 
-                    ContentValues cv = new ContentValues();
-                    cv.put(UserEntry._ID, user.getId());
-                    cv.put(UserEntry.COLUMN_DISPLAY_NAME, user.getDisplayName());
-                    cv.put(UserEntry.COLUMN_LINK, user.getLink());
-                    cv.put(UserEntry.COLUMN_REPUTATION, user.getReputation());
-                    cv.put(UserEntry.COLUMN_PROFILE_IMAGE, user.getProfileImage());
+                    ContentValues cv = user.toContentValues();
+
 
                     userVector.add(cv);
 
                     Answer answer = new Answer(answerObject);
 
-                    cv = new ContentValues();
-                    cv.put(
-                            StackyContract.AnswerEntry._ID,
-                            answer.getId()
-                    );
-
-                    cv.put(
-                            StackyContract.AnswerEntry.COLUMN_CREATION_DATE,
-                            answer.getCreationDate()
-                    );
-
-                    cv.put(
-                            StackyContract.AnswerEntry.COLUMN_SCORE,
-                            answer.getScore()
-                    );
-                    cv.put(
-                            StackyContract.AnswerEntry.COLUMN_QUESTION_ID,
-                            answer.getQuestionId()
-                    );
-                    cv.put(
-                            StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED,
-                            answer.isAccepted()
-                    );
-                    cv.put(
-                            StackyContract.AnswerEntry.COLUMN_LAST_ACTIVITY_DATE,
-                            answer.getLastActivityDate()
-                    );
-
-                    cv.put(
-                            StackyContract.AnswerEntry.COLUMN_OWNER_ID,
-                            user.getId()
-                    );
+                    cv = answer.toContentValues(user.getId());
 
                     answerVector.add(cv);
 

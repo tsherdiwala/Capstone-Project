@@ -285,6 +285,17 @@ public class StackyProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
+            case USER:
+                returnCursor = mDbHelper.getReadableDatabase().query(
+                        StackyContract.UserEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
