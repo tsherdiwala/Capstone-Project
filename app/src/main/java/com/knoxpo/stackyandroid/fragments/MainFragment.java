@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.knoxpo.stackyandroid.R;
 import com.knoxpo.stackyandroid.data.StackyContract;
 import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
@@ -31,6 +32,7 @@ import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
 import com.knoxpo.stackyandroid.dialogs.InputDialogFragment;
 import com.knoxpo.stackyandroid.models.Answer;
 import com.knoxpo.stackyandroid.models.User;
+import com.knoxpo.stackyandroid.utils.AnalyticUtils;
 import com.knoxpo.stackyandroid.utils.Constants;
 import com.knoxpo.stackyandroid.utils.VolleyHelper;
 import com.knoxpo.stackyandroid.utils.http.StackyErrorListener;
@@ -104,6 +106,13 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                 InputDialogFragment fragment = InputDialogFragment.newInstance(R.string.hint_question_id, InputType.TYPE_CLASS_NUMBER);
                 fragment.setTargetFragment(this, REQUEST_QUESTION_ID);
                 fragment.show(getFragmentManager(), TAG_INPUT_DIALOG);
+
+
+                Bundle bundle = new Bundle();
+                bundle.putString(FirebaseAnalytics.Param.ITEM_ID, AnalyticUtils.EVENT_ADD_QUESTION_PROMPT);
+                AnalyticUtils.getInstance(getActivity())
+                        .logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+
             } else {
                 Toast.makeText(getActivity(), R.string.error_no_internet, Toast.LENGTH_LONG).show();
             }
@@ -159,11 +168,19 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Bundle bundle = new Bundle();
         if (requestCode == REQUEST_QUESTION_ID && resultCode == Activity.RESULT_OK) {
             String questionId = data.getStringExtra(InputDialogFragment.EXTRA_INPUT);
             getQuestionDetails(questionId);
             getAnswerDetails(questionId);
+
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, AnalyticUtils.EVENT_ADDED_QUESTION);
+
+        }else if(resultCode == Activity.RESULT_CANCELED){
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, AnalyticUtils.EVENT_DISMISSED_ADDITION);
         }
+        AnalyticUtils.getInstance(getActivity())
+                .logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
 
     private void getQuestionDetails(String questionId) {

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "114414721842",
+    "firebase_url": "https://stacky-7282b.firebaseio.com",
+    "project_id": "stacky-7282b",
+    "storage_bucket": "stacky-7282b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:114414721842:android:0a31bd132345a092",
+        "android_client_info": {
+          "package_name": "com.knoxpo.stackyandroid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "114414721842-vj94bhh7lq93kqq10tf00tg1abae47ig.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDp9jrOyeIl9uj4M7-DQAUjQ9OSdJ3tQuA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
