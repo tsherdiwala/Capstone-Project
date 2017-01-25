@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.annotation.Nullable;
 
+import com.knoxpo.stackyandroid.widget.StackyWidget;
+
 import java.util.HashMap;
 
 /**
@@ -359,6 +361,7 @@ public class StackyProvider extends ContentProvider {
 
 
         getContext().getContentResolver().notifyChange(uri, null);
+        StackyWidget.sendRefreshBroadcast(getContext());
         return returnUri;
     }
 
@@ -381,6 +384,7 @@ public class StackyProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
+                StackyWidget.sendRefreshBroadcast(getContext());
                 return returnCount;
             case ANSWER:
                 db.beginTransaction();
@@ -399,6 +403,7 @@ public class StackyProvider extends ContentProvider {
                         uri,
                         null
                 );
+                StackyWidget.sendRefreshBroadcast(getContext());
                 return returnCount;
             default:
                 return super.bulkInsert(uri, values);
@@ -444,6 +449,7 @@ public class StackyProvider extends ContentProvider {
                         StackyContract.QuestionEntry.buildQuestionUri(questionId),
                         null
                 );
+                StackyWidget.sendRefreshBroadcast(getContext());
                 return answerDeleteCount;
             default:
                 throw new UnsupportedOperationException("Could not delete URI : " + uri);
@@ -491,6 +497,7 @@ public class StackyProvider extends ContentProvider {
 
         }
         getContext().getContentResolver().notifyChange(uri, null);
+        StackyWidget.sendRefreshBroadcast(getContext());
         return updatedRows;
     }
 }
