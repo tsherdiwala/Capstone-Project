@@ -24,8 +24,9 @@ public class StackyProvider extends ContentProvider {
             QUESTION_WITH_ID = 1,
             ANSWER = 2,
             ANSWER_WITH_ID = 3,
-            USER = 4,
-            USER_WITH_ID = 5;
+            ANSWER_ALL = 4,
+            USER = 5,
+            USER_WITH_ID = 6;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -39,7 +40,7 @@ public class StackyProvider extends ContentProvider {
         matcher.addURI(authority, StackyContract.PATH_QUESTION + "/#/" + StackyContract.PATH_ANSWER + "/#", ANSWER_WITH_ID);
         matcher.addURI(authority, StackyContract.PATH_USER, USER);
         matcher.addURI(authority, StackyContract.PATH_USER + "/#", USER_WITH_ID);
-
+        matcher.addURI(authority, StackyContract.PATH_ANSWER, ANSWER_ALL);
         return matcher;
     }
 
@@ -264,7 +265,7 @@ public class StackyProvider extends ContentProvider {
                 returnCursor = getQuestions(
                         projection,
                         sortOrder,
-                        StackyContract.QuestionEntry.TABLE_NAME+"."+StackyContract.QuestionEntry._ID + "= ?",
+                        StackyContract.QuestionEntry.TABLE_NAME + "." + StackyContract.QuestionEntry._ID + "= ?",
                         new String[]{
                                 String.valueOf(StackyContract.QuestionEntry.getQuestionIdFromUri(uri))
                         }
@@ -272,6 +273,17 @@ public class StackyProvider extends ContentProvider {
                 break;
             case ANSWER:
                 returnCursor = getAnswersForQuestion(uri, projection, sortOrder);
+                break;
+            case ANSWER_ALL:
+                returnCursor = mDbHelper.getReadableDatabase().query(
+                        StackyContract.AnswerEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);

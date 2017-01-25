@@ -77,11 +77,11 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
             int i = 0;
             do {
                 long questionId = cursor.getLong(0);
-                ArrayList<Long> existingList = requestMap.get(i % 100);
-                if (existingList == null) {
-                    existingList = new ArrayList<Long>();
+                ArrayList<Long> delimitedList = requestMap.get(i % 100);
+                if (delimitedList == null) {
+                    delimitedList = new ArrayList<Long>();
                 }
-                existingList.add(questionId);
+                delimitedList.add(questionId);
                 i++;
             } while (cursor.moveToNext());
         }
@@ -90,12 +90,33 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
             cursor.close();
         }
 
+        cursor = getContext().getContentResolver().query(
+                StackyContract.AnswerEntry.CONTENT_URI,
+                new String[]{StackyContract.AnswerEntry._ID},
+                null,
+                null,
+                null
+        );
+
+        ArrayList<Long> existingAnswerIds = new ArrayList<>();
+        if(cursor!=null && cursor.moveToFirst()){
+            do{
+                existingAnswerIds.add(cursor.getLong(0));
+            }while (cursor.moveToNext());
+        }
+
+        if(cursor!=null){
+            cursor.close();
+        }
+
+
+        StringBuffer buffer = null;
         for (ArrayList<Long> questionIds : requestMap.values()) {
             BufferedReader reader = null;
             try {
                 URL url = new URL(Constants.Api.getAnswerUrl(questionIds, lastSyncMillis));
                 InputStream stream = downloadUrl(url);
-                StringBuffer buffer = new StringBuffer();
+                buffer = new StringBuffer();
 
                 if (stream == null) {
                     return;
@@ -114,7 +135,6 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
 
 
 
-
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -129,6 +149,9 @@ public class StackySyncAdapter extends AbstractThreadedSyncAdapter {
                 }
             }
         }
+
+
+
 
 
     }

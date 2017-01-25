@@ -29,6 +29,7 @@ import com.knoxpo.stackyandroid.data.StackyContract;
 import com.knoxpo.stackyandroid.data.StackyContract.QuestionEntry;
 import com.knoxpo.stackyandroid.data.StackyContract.UserEntry;
 import com.knoxpo.stackyandroid.dialogs.InputDialogFragment;
+import com.knoxpo.stackyandroid.models.Answer;
 import com.knoxpo.stackyandroid.models.User;
 import com.knoxpo.stackyandroid.utils.Constants;
 import com.knoxpo.stackyandroid.utils.VolleyHelper;
@@ -70,7 +71,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
             REQUEST_QUESTION_DETAILS = 1,
             REQUEST_ANSWERS = 2;
 
-    public interface Callback{
+    public interface Callback {
         void onQuestionClicked(long questionId);
     }
 
@@ -104,7 +105,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
                 fragment.setTargetFragment(this, REQUEST_QUESTION_ID);
                 fragment.show(getFragmentManager(), TAG_INPUT_DIALOG);
             } else {
-                Toast.makeText(getActivity(),R.string.error_no_internet,Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), R.string.error_no_internet, Toast.LENGTH_LONG).show();
             }
             return true;
         } else {
@@ -300,38 +301,41 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
                     userVector.add(cv);
 
+                    Answer answer = new Answer(answerObject);
+
                     cv = new ContentValues();
                     cv.put(
                             StackyContract.AnswerEntry._ID,
-                            answerObject.getLong(JSON_N_ANSWER_ID)
+                            answer.getId()
                     );
 
                     cv.put(
                             StackyContract.AnswerEntry.COLUMN_CREATION_DATE,
-                            answerObject.getLong(JSON_N_CREATION_DATE)
+                            answer.getCreationDate()
                     );
 
                     cv.put(
                             StackyContract.AnswerEntry.COLUMN_SCORE,
-                            answerObject.getInt(JSON_N_SCORE)
+                            answer.getScore()
                     );
                     cv.put(
                             StackyContract.AnswerEntry.COLUMN_QUESTION_ID,
-                            answerObject.getLong(JSON_N_QUESTION_ID)
+                            answer.getQuestionId()
                     );
                     cv.put(
                             StackyContract.AnswerEntry.COLUMN_IS_ACCEPTED,
-                            answerObject.getBoolean(JSON_B_IS_ACCEPTED)
+                            answer.isAccepted()
                     );
                     cv.put(
                             StackyContract.AnswerEntry.COLUMN_LAST_ACTIVITY_DATE,
-                            answerObject.getLong(JSON_N_LAST_ACTIVITY_DATE)
+                            answer.getLastActivityDate()
                     );
 
                     cv.put(
                             StackyContract.AnswerEntry.COLUMN_OWNER_ID,
                             user.getId()
                     );
+
                     answerVector.add(cv);
 
                     questionId = answerObject.getInt(JSON_N_QUESTION_ID);
