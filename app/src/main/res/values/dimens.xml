@@ -5,4 +5,5 @@
     <dimen name="answer_list_padding">10dp</dimen>
     <dimen name="answer_profile_picture">30dp</dimen>
     <dimen name="question_profile_pic_size">40dp</dimen>
+    <dimen name="two_pane_left_width">300dp</dimen>
 </resources>

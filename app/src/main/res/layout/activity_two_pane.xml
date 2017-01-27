@@ -22,7 +22,7 @@
         >
 
         <FrameLayout
-            android:layout_width="300dp"
+            android:layout_width="@dimen/two_pane_left_width"
             android:layout_height="match_parent"
             android:id="@+id/fragment_container" />
 
