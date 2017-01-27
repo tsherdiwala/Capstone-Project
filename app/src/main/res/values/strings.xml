@@ -23,4 +23,6 @@
     <string name="error_adding">Error adding questions</string>
     <string name="error_no_internet">No internet connection</string>
     <string name="error_invalid_url">Invalid URL</string>
+    <string name="accepted_answer">The answer is accepted</string>
+    <string name="answered_question">The question is answered</string>
 </resources>
