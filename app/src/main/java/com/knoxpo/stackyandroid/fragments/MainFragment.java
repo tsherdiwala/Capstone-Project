@@ -103,7 +103,7 @@ public class MainFragment extends DataUriListFragment<MainFragment.QuestionVH>
 
             if (Constants.isConnectedToInternet(getActivity())) {
 
-                InputDialogFragment fragment = InputDialogFragment.newInstance(R.string.hint_question_id, InputType.TYPE_CLASS_NUMBER);
+                InputDialogFragment fragment = InputDialogFragment.newInstance(R.string.hint_question, InputType.TYPE_TEXT_VARIATION_URI|InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
                 fragment.setTargetFragment(this, REQUEST_QUESTION_ID);
                 fragment.show(getFragmentManager(), TAG_INPUT_DIALOG);
 
